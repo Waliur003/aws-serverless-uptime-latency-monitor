@@ -92,6 +92,7 @@ Eliminated server maintenance by publishing real-time telemetry into an Amazon S
 
 ## Architecture Diagram
 
+<img width="1292" height="835" alt="Architecture Diagram" src="https://github.com/user-attachments/assets/9d8a3e0a-eb32-4647-a7f4-6e60ab86810f" />
 
 
 ---

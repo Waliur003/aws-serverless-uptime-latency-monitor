@@ -92,50 +92,7 @@ Eliminated server maintenance by publishing real-time telemetry into an Amazon S
 
 ## Architecture Diagram
 
-```text
-       +-------------------------------------------------------+
-       |             AWS Cloud (us-east-1)                     |
-       |                                                       |
-       |  +--------------------+                               |
-       |  | Amazon EventBridge |                               |
-       |  | (5-Min Rate Rule)  |                               |
-       |  +--------------------+                               |
-       |            |                                          |
-       |            | (1. Automated Trigger)                   |
-       |            v                                          |
-       |  +--------------------+                               |
-       |  |     AWS Lambda     |--------(2. HTTP Synthetic Probe)-----> [Monitored Website Endpoint]
-       |  |   (Python 3.12)    |<-------(3. Latency & Status)----------- (HTTP 200 OK / 404 / 500)
-       |  +--------------------+                               |
-       |       |          |    |                               |
-       |       |          |    +---(4. If Outage / Status!=UP)-+
-       |       |          |                                    |
-       |       |          |                                    v
-       |       |          |                          +-------------------+
-       |       |          |                          |    Amazon SNS     |---> [On-Call Engineer Inboxes]
-       |       |          |                          | (Outage Alerts)   |
-       |       |          |                          +-------------------+
-       |       |          |                                    
-       |       |          +---(5. PutItem Time-Series Log)----+
-       |       |                                               |
-       |       v                                               v
-       |  +-----------------------+               +--------------------------+
-       |  |       Amazon S3       |               |     Amazon DynamoDB      |
-       |  | (Static Status Page) |               | (website-uptime-history) |
-       |  | - index.html          |               +--------------------------+
-       |  | - status.json         |
-       |  +-----------------------+
-       |              |
-       +--------------|----------------------------------------+
-                      |
-                      | (6. Public HTTP Telemetry Fetch)
-                      v
-          +------------------------+
-          |  Browser Status View   |
-          | (Live SRE Health Card) |
-          +------------------------+
 
-```
 
 ---
 
@@ -337,17 +294,29 @@ The interface successfully rendered:
 
 Displays the AWS DynamoDB console for `website-uptime-history` under **Explore items**, showing time-series rows capturing probe executions with `site_url`, timestamps, latency metrics, HTTP status codes, and operational health states (`UP` vs. `DOWN`).
 
+<img width="1362" height="622" alt="Screenshot 1" src="https://github.com/user-attachments/assets/4027e9b7-1d76-42f0-8bad-05aa4d29eb75" />
+
+
 ### 2. Lambda Function Successful Execution Output Returning HTTP 200 & Telemetry
 
 Shows the execution result banner inside the AWS Lambda console for `uptime-health-checker` returning `Status: Succeeded` with HTTP 200, alongside the structured JSON response payload confirming successful probe execution, DynamoDB persistence, and S3 status synchronization.
+
+<img width="1402" height="597" alt="Screenshot 2" src="https://github.com/user-attachments/assets/2d75c618-85e1-46b6-a9cf-a6472966ca56" />
+
 
 ### 3. Automated Amazon SNS High-Priority Outage Email Notification
 
 Captures the alert email delivered to the engineer inbox from `AWS Notifications` (`uptime-alert-topic`), displaying the subject line `OUTAGE ALERT: ... is DOWN` and the message body containing failure logs, HTTP error codes, and UTC timestamps.
 
+<img width="1587" height="612" alt="Screenshot 3" src="https://github.com/user-attachments/assets/138de5ba-2ec1-4058-91ec-8ed728afed1c" />
+
+
 ### 4. Live S3 SRE Health Dashboard Rendering Operational Telemetry
 
 Displays the web browser viewing `website-uptime-dashboard-sun-waliur-2026.s3-website-us-east-1.amazonaws.com`, showing the dark-mode status card with a green operational badge, real-time response latency, and HTTP status verification.
+
+<img width="1530" height="887" alt="Screenshot 4" src="https://github.com/user-attachments/assets/2281ee12-aa06-4ee6-9dc1-0cbfee848bf4" />
+
 
 ### 5. Amazon EventBridge Schedule Automating 5-Minute Probes
 

@@ -1,0 +1,27 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DynamoDBLogAccess",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+      ],
+      "Resource": "arn:aws:dynamodb:*:*:table/website-uptime-history"
+    },
+    {
+      "Sid": "SNSPublishAlertAccess",
+      "Effect": "Allow",
+      "Action": "sns:Publish",
+      "Resource": "arn:aws:sns:*:*:uptime-alert-topic"
+    },
+    {
+      "Sid": "S3DashboardWriteAccess",
+      "Effect": "Allow",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::website-uptime-dashboard-sun-waliur-2026/*"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Website Uptime & Reliability Monitor</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b1120; color: #f8fafc; padding: 2rem; margin: 0; }
+    .container { max-width: 650px; margin: 2rem auto; }
+    .card { background: #1e293b; border-radius: 12px; padding: 2rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); border: 1px solid #334155; }
+    h1 { margin-top: 0; font-size: 1.5rem; }
+    .badge { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; padding: 0.4rem 1rem; border-radius: 9999px; font-size: 1rem; }
+    .badge-up { background: #064e3b; color: #34d399; border: 1px solid #059669; }
+    .badge-down { background: #7f1d1d; color: #f87171; border: 1px solid #dc2626; }
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+    .metric-box { background: #0f172a; padding: 1rem; border-radius: 8px; border: 1px solid #334155; }
+    .metric-title { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 600; }
+    .metric-value { font-size: 1.5rem; font-weight: 700; color: #38bdf8; margin-top: 0.25rem; }
+    .timestamp { font-size: 0.85rem; color: #64748b; margin-top: 1.5rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>SRE Website Health Monitor</h1>
+      <p id="targetUrl" style="color: #94a3b8; word-break: break-all;">Loading monitored endpoint...</p>
+      
+      <div id="statusContainer" style="margin: 1.5rem 0;">
+        <span class="badge" id="statusBadge">Checking status...</span>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-title">Response Latency</div>
+          <div class="metric-value" id="latencyVal">-- ms</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">HTTP Response Code</div>
+          <div class="metric-value" id="codeVal">--</div>
+        </div>
+      </div>
+
+      <div class="timestamp" id="lastCheck">Waiting for probe response...</div>
+    </div>
+  </div>
+
+  <script>
+    fetch('status.json')
+      .then(res => {
+        if (!res.ok) throw new Error("Status snapshot not found");
+        return res.json();
+      })
+      .then(data => {
+        document.getElementById('targetUrl').textContent = `Target: ${data.targetUrl}`;
+        const badge = document.getElementById('statusBadge');
+        if (data.status === 'UP') {
+          badge.className = 'badge badge-up';
+          badge.textContent = '● SYSTEM OPERATIONAL (UP)';
+        } else {
+          badge.className = 'badge badge-down';
+          badge.textContent = `● CRITICAL OUTAGE (${data.status})`;
+        }
+        document.getElementById('latencyVal').textContent = `${data.latencyMs} ms`;
+        document.getElementById('codeVal').textContent = data.responseCode;
+        document.getElementById('lastCheck').textContent = `Last Probe (UTC): ${new Date(data.lastChecked).toLocaleString()}`;
+      })
+      .catch(() => {
+        document.getElementById('statusBadge').className = 'badge badge-down';
+        document.getElementById('statusBadge').textContent = '● No telemetry data found yet';
+      });
+  </script>
+</body>
+</html>
